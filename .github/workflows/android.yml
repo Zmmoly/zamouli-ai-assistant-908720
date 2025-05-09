@@ -1,0 +1,50 @@
+name: بناء تطبيق زمولي
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: التحقق من الكود
+        uses: actions/checkout@v3
+
+      - name: إعداد Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: منح صلاحيات التنفيذ لملف gradlew
+        run: chmod +x ./gradlew
+
+      - name: بناء APK
+        run: ./gradlew assembleDebug
+
+      - name: رفع ملف APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: zamuli-app
+          path: app/build/outputs/apk/debug/*.apk
+
+      - name: إنشاء إصدار
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/build/outputs/apk/debug/*.apk
+          name: إصدار زمولي
+          body: |
+            تطبيق المساعد الصحي الذكي
+            
+            المميزات:
+            - التعرف على الصوت
+            - تحليل طبي
+            - ذكاء اصطناعي متكيف
+            - دعم اللغة العربية
